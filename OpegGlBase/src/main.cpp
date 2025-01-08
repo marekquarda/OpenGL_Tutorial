@@ -15,6 +15,12 @@ int main() {
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	gladLoadGL();
+	glViewport(0,0,800,800);
+	glClearColor(1.f,0.f,0.f,1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glfwSwapBuffers(window);
+
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 	}
