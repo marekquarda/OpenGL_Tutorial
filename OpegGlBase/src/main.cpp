@@ -2,12 +2,9 @@
 #include "glad.h"
 #include <glfw/glfw3.h>
 #include "shaderClass.h"
-
-int main() {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
 
 	GLfloat vertices[] = 
 	{
@@ -26,61 +23,82 @@ int main() {
 		5 , 4 , 1
 	};
 
-	GLFWwindow *window = glfwCreateWindow(800,800,"OpenGl Base",NULL, NULL);
-	if(window == NULL) {
-		std::cerr << "Failed to create GLFW window" << std::endl;
+
+int main() {
+// Initialize GLFW
+	glfwInit();
+
+	// Tell GLFW what version of OpenGL we are using 
+	// In this case we are using OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// Tell GLFW we are using the CORE profile
+	// So that means we only have the modern functions
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
+	GLFWwindow* window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
+	// Error check if the window fails to create
+	if (window == NULL)
+	{
+		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
+	// Introduce the window into the current context
 	glfwMakeContextCurrent(window);
+
+	//Load GLAD so it configures OpenGL
 	gladLoadGL();
+	// Specify the viewport of OpenGL in the Window
+	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
 	glViewport(0,0,800,800);
 
 	// Generates Shader object using shaders defualt.vert and default.frag
-	Shader shaderProgram("default.vert", "default.frag");
+	Shader shaderProgram("../res/default.vert", "../res/default.frag");
 
-	GLuint VBO,VAO,EBO;
-	glGenVertexArrays(1,&VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	// Generate Vertex Buffer Array Object and links it to indices
+	VAO VAO1;
+	VAO1.Bind();
 
-	glBindVertexArray(VAO);
-	
+	// Generates Vertex Buffer Object and links it to vertices
+	VBO VBO1(vertices, sizeof(vertices));
+	// Generates Element Buffer Object and links it to indices
+	EBO EBO1(indices, sizeof(indices));
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO); 
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices),indices,GL_STATIC_DRAW);
+	// Links VBO to VAO
+	VAO1.LinkVBO(VBO1, 0);
 
-	glVertexAttribPointer(0,3,GL_FLOAT, GL_FALSE, 3*sizeof(float),(void*)0);
-	glEnableVertexAttribArray(0);
- 
-	glBindBuffer(GL_ARRAY_BUFFER,0);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-
-	glClearColor(1.f,0.f,0.f,1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glfwSwapBuffers(window);
+	// Unbind all to prevent accidentally modifying them
+	VAO1.Unbind();
+	VBO1.Unbind();
+	EBO1.Unbind();
 
 	while(!glfwWindowShouldClose(window)) {
-		glClearColor(0.07f,0.13f,0.17f,1.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// Specify the color of the background
+		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+		// Clean the back buffer and assign the new color to it
+		glClear(GL_COLOR_BUFFER_BIT);
 		// Tell OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
-		glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0,3);
-		glDrawElements(GL_TRIANGLES,9, GL_UNSIGNED_INT,0);
+		// Bind the VAO so OpenGL knows to use it
+		VAO1.Bind();
+		// Draw primitives, number of indices, datatype of indices, index of indices
+		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
+		// Take care of all GLFW events
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1,&VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1,&EBO);
+	// Delete all the objects we've created
+	VAO1.Delete();
+	VBO1.Delete();
+	EBO1.Delete();
 	shaderProgram.Delete();
-
+	// Delete window before ending the program
 	glfwDestroyWindow(window);
+	// Terminate GLFW before ending the program
 	glfwTerminate();
 	return 0;
 }
