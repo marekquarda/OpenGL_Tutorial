@@ -1,30 +1,7 @@
 #include <iostream>
 #include "glad.h"
 #include <glfw/glfw3.h>
-
-
-const char* vSrc = 
-R".(
-    #version 460
-
-	layout(location = 0) in vec3 aPos;
-
-    void main() {
-		gl_Position = vec4(aPos.x, aPos.y, aPos.y, 1.0);
-    }
-).";
-
-const char* fSrc = 		
-R".(
-    #version 460
-
-	out vec4 FragColor;
-
-    void main() {
-		FragColor = vec4(0.8f,0.3f,0.02f,1.0f);
-    }
-).";
-
+#include "shaderClass.h"
 
 int main() {
 	glfwInit();
@@ -59,22 +36,8 @@ int main() {
 	gladLoadGL();
 	glViewport(0,0,800,800);
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vSrc, NULL);
-	glCompileShader(vertexShader);
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fSrc, NULL);
-	glCompileShader(fragmentShader);
-
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	// remove shaders
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	// Generates Shader object using shaders defualt.vert and default.frag
+	Shader shaderProgram("default.vert", "default.frag");
 
 	GLuint VBO,VAO,EBO;
 	glGenVertexArrays(1,&VAO);
@@ -103,7 +66,8 @@ int main() {
 	while(!glfwWindowShouldClose(window)) {
 		glClearColor(0.07f,0.13f,0.17f,1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glUseProgram(shaderProgram);
+		// Tell OpenGL which Shader Program we want to use
+		shaderProgram.Activate();
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0,3);
 		glDrawElements(GL_TRIANGLES,9, GL_UNSIGNED_INT,0);
@@ -114,7 +78,7 @@ int main() {
 	glDeleteVertexArrays(1,&VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1,&EBO);
-	glDeleteProgram(shaderProgram);
+	shaderProgram.Delete();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

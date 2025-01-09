@@ -6,15 +6,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 #option(SDL_SHARED "" OFF)
 #option(SDL_STATIC "" ON)
-#add_subdirectory(SDL)
-#add_subdirectory(geGL)
-#add_subdirectory(glfw)
-#add_subdirectory(glm)
 add_subdirectory(glfw)
+include_directories(res)
 
-#add_library(SDL2::SDL2 ALIAS SDL2-static)
-#add_library(SDL2::SDL2main ALIAS SDL2main)
+# Load all files in src folder
+file(GLOB SRC_FILES "src/*.cpp")
+set(RES_FILES "res/default.frag" "res/default.vert")
+#file(GLOB RES_FILES "res/*")
 
-add_executable(${PROJECT_NAME} src/main.cpp src/glad.cpp) 
+file(COPY ${RES_FILES}
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+add_executable(${PROJECT_NAME} ${SRC_FILES} ${RES_FILES}) 
+
+#target_sources(${PROJECT_NAME} PUBLIC ${RES_FILES})
 target_link_libraries(${PROJECT_NAME}  glfw)
+
