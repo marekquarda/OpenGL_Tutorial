@@ -1,5 +1,33 @@
 #include "shaderClass.h"
 
+std::string vsSrc = 
+    R".(
+        #version 450
+
+        layout(location = 0) in vec3 aPos;
+        layout(location = 1) in vec3 aColor;
+
+        out vec3 color;
+
+        void main() {
+	        gl_Position = vec4(aPos.x, aPos.y, aPos.y, 1.0);
+	        color = aColor;
+        }
+ ).";
+
+std::string fsSrc = 
+R".(
+    #version 450
+
+    out vec4 FragColor;
+    in vec3 color;
+
+    void main() {
+	    FragColor = vec4(color,1.0f);
+    }
+).";
+
+
 // Reads a text file and outputs a string everything in the text file
 std::string get_file_contents(const char* filename)
 {
@@ -21,8 +49,8 @@ std::string get_file_contents(const char* filename)
 Shader::Shader(const char* vertexFile, const char* fragmentFile) 
 {
     // Read vertextFile and fragmentFile and store the string
-    std::string vertexCode = get_file_contents(vertexFile);
-    std::string fragmentCode = get_file_contents(fragmentFile);
+    std::string vertexCode = vsSrc;// get_file_contents(vertexFile);
+    std::string fragmentCode = fsSrc; // get_file_contents(fragmentFile);
 
     // Convert the shader source strings into character arrays
     const char* vertexSource = vertexCode.c_str();
