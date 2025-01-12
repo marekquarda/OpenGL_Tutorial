@@ -5,6 +5,7 @@
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
+//#include "stb_image.h"
 
 	GLfloat vertices[] = 
 	{ //               COORDINATES                  /     COLORS           //
