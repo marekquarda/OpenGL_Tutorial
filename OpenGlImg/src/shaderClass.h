@@ -8,8 +8,6 @@
 #include<iostream>
 #include<cerrno>
 
-std::string get_file_contents(const char* filename);
-
 class Shader
 {
 public:
