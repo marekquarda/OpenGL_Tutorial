@@ -14,7 +14,7 @@ file(GLOB SRC_FILES "src/*.*")
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-add_custom_target(run ./${PROJECT_NAME})
+add_custom_target(run ./${PROJECT_NAME} & 'output.png')
 
 target_link_libraries(${PROJECT_NAME}
         glm
