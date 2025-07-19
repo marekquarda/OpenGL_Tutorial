@@ -1,4 +1,4 @@
-#include "stb_image_write.h"
+#include "stbi_image_write.h"
 #include <vector>
 
 #include <iostream>
