@@ -36,8 +36,11 @@ void saveFrame(std::string const&file, Frame const&f) {
 }
 
 struct Sphere{
+    glm::vec3 color;
     glm::vec3 C;
     float     R;
+    Sphere(){};
+    Sphere(glm::vec3 const&c, float r, glm::vec3 const&col):C(c),R(r),color(col){};
 };
 
 struct Ray
@@ -46,6 +49,12 @@ struct Ray
     glm::vec3 D;
 };
 
+struct Intersection 
+{
+    glm::vec3 position = glm::vec3(0,0,0);
+    glm::vec3 normal =  glm::vec3(1,0,0);
+    bool exist = false;
+};
 
 float raySphereIntersection(Sphere const&s, Ray const&ray) {
     float a = glm::dot(ray.D,ray.D);
@@ -63,9 +72,9 @@ float raySphereIntersection(Sphere const&s, Ray const&ray) {
 int main(int args, char*argv[]) {
     Frame frame = Frame(1024,1024,3);
 
-    Sphere sphere;
-    sphere.C = glm::vec3(0,0,-3);
-    sphere.R = 1.f;
+    std::vector<Sphere> spheres;
+    spheres.emplace_back(glm::vec3(0,0,-3),1.f,glm::vec3(0,0,1));
+    spheres.emplace_back(glm::vec3(-1,0,-4),1.f,glm::vec3(0,1,0));
      
     for (uint32_t y=0;y<frame.width;++y) {
         for(u_int32_t x=0;x<frame.height;++x) {
@@ -75,12 +84,35 @@ int main(int args, char*argv[]) {
             ray.S = glm::vec3(0.f);
             ray.D = glm::normalize(glm::vec3(fx, fy, -1.f));
 
-            if(raySphereIntersection(sphere, ray)>0)
-                frame.data[(y*frame.width+x)*frame.channels+0] = 255;
-           // frame.data[(y*frame.width+x)*frame.channels+0] = (uint8_t) glm::clamp(255.f*(D.x*.5f+.5f),0.f,255.f);
-           // frame.data[(y*frame.width+x)*frame.channels+1] = (uint8_t) glm::clamp(255.f*(D.y*.5f+.5f),0.f,255.f);
+            float minT = -1.f;
+            size_t sphereId = 0;
+            for (size_t i = 0; i < spheres.size(); ++i) {
+                auto const&sphere = spheres.at(i);
+                auto t = raySphereIntersection(sphere, ray);
+                if(t>0) {
+                    if(minT<0.f) {
+                        minT = t;
+                        sphereId = i;
+                    }
+                    if(i<minT) {
+                        minT = t;
+                        sphereId = i;
+                    }
+                }
+            }
             
+            if(minT>0.f) {
+                auto const&sphere = spheres.at(sphereId);
+                auto const&color = sphere.color;
+                for (uint32_t c=0; c < frame.channels;++c) 
+                frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(color[c]*255.f,0.f,255.f);
+            } else {
+                for (uint32_t c=0; c < frame.channels;++c) 
+                    frame.data[(y*frame.width+x)*frame.channels+c] = 40;
+            }
         }
+            // frame.data[(y*frame.width+x)*frame.channels+0] = (uint8_t) glm::clamp(255.f*(D.x*.5f+.5f),0.f,255.f);
+           // frame.data[(y*frame.width+x)*frame.channels+1] = (uint8_t) glm::clamp(255.f*(D.y*.5f+.5f),0.f,255.f);
     }
 
     saveFrame("output.png", frame);
