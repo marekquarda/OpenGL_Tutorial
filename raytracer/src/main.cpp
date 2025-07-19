@@ -8,6 +8,8 @@ struct Frame{
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t channels = 0;
+    Frame(){};
+    Frame(uint32_t w, uint32_t h, uint32_t c): width(w), height(h), channels(c),data(w*h*c){};
 };
 
 void flipFrame(Frame&frame) {
@@ -32,5 +34,7 @@ void saveFrame(std::string const&file, Frame const&f) {
 }
 
 int main(int args, char*argv[]) {
+    Frame frame = Frame(256,256,3);
+    
     return 1;
 }
