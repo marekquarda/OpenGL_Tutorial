@@ -62,15 +62,23 @@ float raySphereIntersection(Sphere const&s, Ray const&ray) {
 
 int main(int args, char*argv[]) {
     Frame frame = Frame(1024,1024,3);
+
+    Sphere sphere;
+    sphere.C = glm::vec3(0,0,-3);
+    sphere.R = 1.f;
+     
     for (uint32_t y=0;y<frame.width;++y) {
         for(u_int32_t x=0;x<frame.height;++x) {
             float fx = (float)x/(float)(frame.width-1)*2.f-1.f;
             float fy = (float)y/(float)(frame.height-1)*2.f-1.f;
-            auto S = glm::vec3(0.f);
-            auto D = glm::normalize(glm::vec3(fx, fy, -1.f));
+            Ray ray;
+            ray.S = glm::vec3(0.f);
+            ray.D = glm::normalize(glm::vec3(fx, fy, -1.f));
 
-            frame.data[(y*frame.width+x)*frame.channels+0] = (uint8_t) glm::clamp(255.f*(D.x*.5f+.5f),0.f,255.f);
-            frame.data[(y*frame.width+x)*frame.channels+1] = (uint8_t) glm::clamp(255.f*(D.y*.5f+.5f),0.f,255.f);
+            if(raySphereIntersection(sphere, ray)>0)
+                frame.data[(y*frame.width+x)*frame.channels+0] = 255;
+           // frame.data[(y*frame.width+x)*frame.channels+0] = (uint8_t) glm::clamp(255.f*(D.x*.5f+.5f),0.f,255.f);
+           // frame.data[(y*frame.width+x)*frame.channels+1] = (uint8_t) glm::clamp(255.f*(D.y*.5f+.5f),0.f,255.f);
             
         }
     }
