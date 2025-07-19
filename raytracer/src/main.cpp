@@ -1,7 +1,7 @@
 #include <iostream>
+#include <stdint.h> 
 #include <vector>
 #include "stbi_image_write.h"
-
 
 
 struct Frame{

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.20)
 
 project(izgRayTracer)
 
@@ -14,7 +14,7 @@ file(GLOB SRC_FILES "src/*.*")
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-add_custom_target(run ./${PROJECT_NAME} & 'output.png')
+add_custom_target(run ./${PROJECT_NAME} & eog output.png)
 
 target_link_libraries(${PROJECT_NAME}
         glm
