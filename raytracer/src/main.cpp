@@ -16,8 +16,8 @@ struct Frame{
 
 void flipFrame(Frame&frame) {
     for (uint32_t y = 0; y< frame.height/2;++y) {
-        for (uint32_t x = 0; x< frame.width/2;++x) {
-            for (uint32_t c = 0; c< frame.channels/2;++c) {
+        for (uint32_t x = 0; x< frame.width;++x) {
+            for (uint32_t c = 0; c< frame.channels;++c) {
                 auto src = (y*frame.width+x)*frame.channels+c;
                 auto dst = ((frame.height-1-y)*frame.width+x)*frame.channels+c;
                 auto z = frame.data.at(src);
@@ -76,7 +76,7 @@ Intersection raySphereIntersection(Sphere const&s, Ray const&ray) {
 }
 
 int main(int args, char*argv[]) {
-    Frame frame = Frame(1024,1024,3);
+    Frame frame = Frame(1024,768,3);
 
     std::vector<Sphere> spheres;
     spheres.emplace_back(glm::vec3(0,0,-3),1.f,glm::vec3(0,0,1));
