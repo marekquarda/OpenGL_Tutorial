@@ -53,21 +53,26 @@ struct Intersection
 {
     glm::vec3 position = glm::vec3(0,0,0);
     glm::vec3 normal =  glm::vec3(1,0,0);
-    bool exist = false;
+    float t = -1.f;
 };
 
 Intersection raySphereIntersection(Sphere const&s, Ray const&ray) {
+    Intersection inter;
     float a = glm::dot(ray.D,ray.D);
     float b = 2*glm::dot(ray.D, ray.S-s.C);
     float c = glm::dot(ray.S-s.C,ray.S-s.C)-s.R*s.R;
     float d = b*b-4*a*c;
-    if(d<0.f) return {};
+    if(d<0.f) return inter;
     float t1 = (-b-glm::sqrt(d))/(2*a);
-    float t2 = (+b-glm::sqrt(d))/(2*a);
+    float t2 = (-b+glm::sqrt(d))/(2*a);
     float t;
     if (t1<0.f) t= t2;
     else if (t2<0.f) t= t1;
-    else t = glm::min(t1,t2); +
+    else t = glm::min(t1,t2); 
+    inter.t = t;
+    inter.position = ray.S + ray.D * t;
+    inter.normal = glm::normalize(inter.position-s.C);
+    return inter;
 }
 
 int main(int args, char*argv[]) {
@@ -77,36 +82,37 @@ int main(int args, char*argv[]) {
     spheres.emplace_back(glm::vec3(0,0,-3),1.f,glm::vec3(0,0,1));
     spheres.emplace_back(glm::vec3(-1,0,-4),1.f,glm::vec3(0,1,0));
      
-    for (uint32_t y=0;y<frame.width;++y) {
-        for(u_int32_t x=0;x<frame.height;++x) {
+    float aspect = (float) frame.width/(float) frame.height;
+    for (uint32_t y=0;y<frame.height;++y) {
+        for(u_int32_t x=0;x<frame.width;++x) {
             float fx = (float)x/(float)(frame.width-1)*2.f-1.f;
             float fy = (float)y/(float)(frame.height-1)*2.f-1.f;
+            fx*=aspect;
             Ray ray;
             ray.S = glm::vec3(0.f);
             ray.D = glm::normalize(glm::vec3(fx, fy, -1.f));
 
             float minT = -1.f;
             size_t sphereId = 0;
+            Intersection finalinter;
             for (size_t i = 0; i < spheres.size(); ++i) {
                 auto const&sphere = spheres.at(i);
-                auto t = raySphereIntersection(sphere, ray);
-                if(t>0) {
-                    if(minT<0.f) {
-                        minT = t;
+                auto inter = raySphereIntersection(sphere, ray);
+                if(inter.t>0.f) {
+                    if(minT<0.f || inter.t < minT) {
+                        minT = inter.t;
                         sphereId = i;
-                    }
-                    if(i<minT) {
-                        minT = t;
-                        sphereId = i;
+                        finalinter = inter;
                     }
                 }
             }
-            
+              
             if(minT>0.f) {
                 auto const&sphere = spheres.at(sphereId);
                 auto const&color = sphere.color;
+                auto const&normal = finalinter.normal;
                 for (uint32_t c=0; c < frame.channels;++c) 
-                frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(color[c]*255.f,0.f,255.f);
+                frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(normal[c]*255.f,0.f,255.f);
             } else {
                 for (uint32_t c=0; c < frame.channels;++c) 
                     frame.data[(y*frame.width+x)*frame.channels+c] = 40;
