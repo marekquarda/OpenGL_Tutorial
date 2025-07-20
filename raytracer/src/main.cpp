@@ -81,6 +81,8 @@ int main(int args, char*argv[]) {
     std::vector<Sphere> spheres;
     spheres.emplace_back(glm::vec3(0,0,-3),1.f,glm::vec3(0,0,1));
     spheres.emplace_back(glm::vec3(-1,0,-4),1.f,glm::vec3(0,1,0));
+
+    auto lightPosition = glm::vec3(100,100,100);
      
     float aspect = (float) frame.width/(float) frame.height;
     for (uint32_t y=0;y<frame.height;++y) {
@@ -109,10 +111,15 @@ int main(int args, char*argv[]) {
               
             if(minT>0.f) {
                 auto const&sphere = spheres.at(sphereId);
-                auto const&color = sphere.color;
-                auto const&normal = finalinter.normal;
+                auto const&diffuseColor = sphere.color;
+                auto const&N = finalinter.normal;
+                auto L = glm::normalize(lightPosition-finalinter.position);
+                float Df = glm::max(glm::dot(N, L),0.f);
+                float Af = 0.1f;
+                auto finalColor = diffuseColor*Df + diffuseColor*Af;
+
                 for (uint32_t c=0; c < frame.channels;++c) 
-                frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(normal[c]*255.f,0.f,255.f);
+                frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(finalColor[c]*255.f,0.f,255.f);
             } else {
                 for (uint32_t c=0; c < frame.channels;++c) 
                     frame.data[(y*frame.width+x)*frame.channels+c] = 40;
