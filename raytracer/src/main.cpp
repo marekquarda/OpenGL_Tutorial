@@ -56,17 +56,18 @@ struct Intersection
     bool exist = false;
 };
 
-float raySphereIntersection(Sphere const&s, Ray const&ray) {
+Intersection raySphereIntersection(Sphere const&s, Ray const&ray) {
     float a = glm::dot(ray.D,ray.D);
     float b = 2*glm::dot(ray.D, ray.S-s.C);
     float c = glm::dot(ray.S-s.C,ray.S-s.C)-s.R*s.R;
     float d = b*b-4*a*c;
-    if(d<0.f) return -1.f;
+    if(d<0.f) return {};
     float t1 = (-b-glm::sqrt(d))/(2*a);
     float t2 = (+b-glm::sqrt(d))/(2*a);
-    if (t1<0.f) return t2;
-    if (t2<0.f) return t1;
-    return glm::min(t1,t2);
+    float t;
+    if (t1<0.f) t= t2;
+    else if (t2<0.f) t= t1;
+    else t = glm::min(t1,t2); +
 }
 
 int main(int args, char*argv[]) {
