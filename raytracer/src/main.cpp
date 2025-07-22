@@ -116,7 +116,13 @@ int main(int args, char*argv[]) {
                 auto L = glm::normalize(lightPosition-finalinter.position);
                 float Df = glm::max(glm::dot(N, L),0.f);
                 float Af = 0.1f;
-                auto finalColor = diffuseColor*Df + diffuseColor*Af;
+                // reflect
+                glm::vec3 reflectSource = glm::normalize(glm::reflect(lightPosition, N));
+                float specularStrength = glm::max(glm::dot(ray.D, reflectSource), 0.f);
+                specularStrength = glm::pow(specularStrength, 32.f);
+                glm::vec3 light = glm::vec3(1.f,1.f,1.f);
+                glm::vec3 specular = specularStrength * light;
+                auto finalColor = diffuseColor*Df + diffuseColor*Af + specular*0.5f;
 
                 for (uint32_t c=0; c < frame.channels;++c) 
                 frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(finalColor[c]*255.f,0.f,255.f);
