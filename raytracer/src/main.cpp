@@ -152,7 +152,7 @@ int main(int args, char*argv[]) {
      
     float aspect = (float) frame.width/(float) frame.height;
     for (uint32_t y=0;y<frame.height;++y) {
-        for(u_int32_t x=0;x<frame.width;++x) {
+        for(uint32_t x=0;x<frame.width;++x) {
             float fx = (float)x/(float)(frame.width-1)*2.f-1.f;
             float fy = (float)y/(float)(frame.height-1)*2.f-1.f;
             fx*=aspect;
