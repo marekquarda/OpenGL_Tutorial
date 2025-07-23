@@ -185,33 +185,6 @@ int main(int args, char*argv[]) {
             for (uint32_t c=0; c < frame.channels;++c) 
                 frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(finalColor[c]*255.f,0.f,255.f);
 
-
-              
-            // if(finalInter.t>0.f) {
-            //     auto finalColor = computeLambert(spheres, finalInter, lightPosition);
-            //     // reflect (Phong)
-            //     // glm::vec3 reflectSource = glm::normalize(glm::reflect(lightPosition, N));
-            //     // float specularStrength = glm::max(glm::dot(ray.D, reflectSource), 0.f);
-            //     // specularStrength = glm::pow(specularStrength, 32.f);
-            //     // glm::vec3 light = glm::vec3(1.f,1.f,1.f);
-            //     // glm::vec3 specular = specularStrength * light;
-            //     // end relect
-            //     auto const&sphere = spheres.at(finalInter.material);
-            //     finalColor *= (1.f-sphere.mirror);
- 
-            //     if (sphere.mirror > 0.f) {
-            //         Ray refRay;
-            //         refRay.D = glm::reflect(ray.D,finalInter.normal);
-            //         refRay.S = finalInter.position;
-            //         auto refInter = findIntersection(spheres, refRay);
-            //     }
-
-            //     for (uint32_t c=0; c < frame.channels;++c) 
-            //     frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(finalColor[c]*255.f,0.f,255.f);
-            // } else {
-            //     for (uint32_t c=0; c < frame.channels;++c) 
-            //         frame.data[(y*frame.width+x)*frame.channels+c] = 40;
-            // }
         }
      }
 
