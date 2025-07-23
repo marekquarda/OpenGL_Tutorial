@@ -108,6 +108,9 @@ Intersection findIntersection(std::vector<Sphere>const& spheres, Ray const&ray) 
 }
 
 glm::vec3 computeLambert(std::vector<Sphere> const& spheres, Intersection const&inter, glm::vec3 const&lightPosition) {
+    if (inter.t< 0.f) {
+        return glm::vec3(0.1f);
+    }
     auto const&sphere = spheres.at(inter.material);
     auto const&diffuseColor = sphere.color;
     auto const&N = inter.normal;
@@ -126,14 +129,15 @@ int main(int args, char*argv[]) {
     spheres.emplace_back(glm::vec3(+1,0,-3),1.f,glm::vec3(0,0,1),0.5);
     spheres.emplace_back(glm::vec3(-1,0,-4),1.f,glm::vec3(0,1,0),0.f);
 
-    // uint32_t N=20;
-    // for (uint32_t i=0;i<N;++i) {
-    //     spheres.emplace_back(
-    //         random(glm::vec3(-3),glm::vec3(-10)),
-    //         random(.1f,5.f),
-    //         random(glm::vec3(0), glm::vec3(1))
-    //     );
-    // }
+    uint32_t N=20;
+    for (uint32_t i=0;i<N;++i) {
+        spheres.emplace_back(
+            random(glm::vec3(-3),glm::vec3(-10)),
+            random(.1f,5.f),
+            random(glm::vec3(0), glm::vec3(1)),
+            random(0.f,1.f)
+        );
+    }
 
     auto lightPosition = glm::vec3(100,100,100);
      
@@ -147,33 +151,58 @@ int main(int args, char*argv[]) {
             ray.S = glm::vec3(0.f);
             ray.D = glm::normalize(glm::vec3(fx, fy, -1.f));
 
-            auto finalInter = findIntersection(spheres, ray);
-              
-            if(finalInter.t>0.f) {
-                auto finalColor = computeLambert(spheres, finalInter, lightPosition);
-                // reflect (Phong)
-                // glm::vec3 reflectSource = glm::normalize(glm::reflect(lightPosition, N));
-                // float specularStrength = glm::max(glm::dot(ray.D, reflectSource), 0.f);
-                // specularStrength = glm::pow(specularStrength, 32.f);
-                // glm::vec3 light = glm::vec3(1.f,1.f,1.f);
-                // glm::vec3 specular = specularStrength * light;
-                // end relect
-                auto const&sphere = spheres.at(finalInter.material);
-                finalColor *= (1.f-sphere.mirror);
- 
-                if (sphere.mirror > 0.f) {
-                    Ray refRay;
-                    refRay.D = glm::reflect(ray.D,finalInter.normal);
-                    refRay.S = finalInter.position;
-                    auto refInter = findIntersection(spheres, refRay);
-                }
+            auto primaryInter = findIntersection(spheres, ray);
+            auto finalColor = computeLambert(spheres, primaryInter, lightPosition);
 
-                for (uint32_t c=0; c < frame.channels;++c) 
-                frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(finalColor[c]*255.f,0.f,255.f);
-            } else {
-                for (uint32_t c=0; c < frame.channels;++c) 
-                    frame.data[(y*frame.width+x)*frame.channels+c] = 40;
+            float primaryMirror = spheres.at(primaryInter.material).mirror;
+            finalColor *= (1.f-primaryMirror);
+ 
+            float weight = primaryMirror;
+            Ray refRay = ray; 
+            Intersection inter = primaryInter;
+
+            for(uint32_t d=0;d<4;++d) {
+                if (weight > 0.f && inter.t > 0.f) {
+                    refRay.D = glm::reflect(refRay.D,inter.normal);
+                    refRay.S = inter.position + refRay.D*0.0001f;
+                    inter = findIntersection(spheres, refRay);
+                    auto refColor =  computeLambert(spheres, inter, lightPosition);
+                    auto mirror = spheres.at(inter.material).mirror;
+                    finalColor += refColor*weight*(1-mirror);
+                    weight*=mirror;
+                }    
             }
+
+            for (uint32_t c=0; c < frame.channels;++c) 
+                frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(finalColor[c]*255.f,0.f,255.f);
+
+
+              
+            // if(finalInter.t>0.f) {
+            //     auto finalColor = computeLambert(spheres, finalInter, lightPosition);
+            //     // reflect (Phong)
+            //     // glm::vec3 reflectSource = glm::normalize(glm::reflect(lightPosition, N));
+            //     // float specularStrength = glm::max(glm::dot(ray.D, reflectSource), 0.f);
+            //     // specularStrength = glm::pow(specularStrength, 32.f);
+            //     // glm::vec3 light = glm::vec3(1.f,1.f,1.f);
+            //     // glm::vec3 specular = specularStrength * light;
+            //     // end relect
+            //     auto const&sphere = spheres.at(finalInter.material);
+            //     finalColor *= (1.f-sphere.mirror);
+ 
+            //     if (sphere.mirror > 0.f) {
+            //         Ray refRay;
+            //         refRay.D = glm::reflect(ray.D,finalInter.normal);
+            //         refRay.S = finalInter.position;
+            //         auto refInter = findIntersection(spheres, refRay);
+            //     }
+
+            //     for (uint32_t c=0; c < frame.channels;++c) 
+            //     frame.data[(y*frame.width+x)*frame.channels+c] = (uint32_t) glm::clamp(finalColor[c]*255.f,0.f,255.f);
+            // } else {
+            //     for (uint32_t c=0; c < frame.channels;++c) 
+            //         frame.data[(y*frame.width+x)*frame.channels+c] = 40;
+            // }
         }
      }
 
