@@ -116,6 +116,15 @@ glm::vec3 computeLambert(std::vector<Sphere> const& spheres, Intersection const&
     auto const&N = inter.normal;
     auto L = glm::normalize(lightPosition-inter.position);
     float Df = glm::max(glm::dot(N, L),0.f);
+
+    Ray shadowRay;
+    shadowRay.D = L;
+    shadowRay.S = inter.position + shadowRay.D*0.001f;
+    
+    auto shadowInter = findIntersection(spheres, shadowRay);
+    if (shadowInter.t>.0f)
+        Df= 0.f;
+
     float Af = 0.1f;
     auto finalColor = diffuseColor*Df + diffuseColor*Af;
     return finalColor;
@@ -126,15 +135,15 @@ int main(int args, char*argv[]) {
     Frame frame = Frame(1024,768,3);
 
     std::vector<Sphere> spheres;
-    spheres.emplace_back(glm::vec3(+1,0,-3),1.f,glm::vec3(0,0,1),0.5);
-    spheres.emplace_back(glm::vec3(-1,0,-4),1.f,glm::vec3(0,1,0),0.f);
+    spheres.emplace_back(glm::vec3(+1,0,-3),1.f,glm::vec3(0,0,1),0.75);
+    spheres.emplace_back(glm::vec3(-1,0,-4),1.f,glm::vec3(0.9),0.75);
 
     uint32_t N=20;
     for (uint32_t i=0;i<N;++i) {
         spheres.emplace_back(
             random(glm::vec3(-3),glm::vec3(-10)),
             random(.1f,5.f),
-            random(glm::vec3(0), glm::vec3(1)),
+            random(glm::vec3(0), glm::vec3(1)), 
             random(0.f,1.f)
         );
     }
